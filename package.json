@@ -7,7 +7,9 @@
     "test": "ng test",
     "lint": "ng lint",
     "build": "rm -rf lib && ngc -p .",
-    "pack": "rm -rf lib vidal-*.tgz && ngc -p . && npm pack"
+    "pack": "rm -rf lib vidal-*.tgz && ngc -p .",
+    "prepublish": "ngc -p .",
+    "postpublish": "rm -rf lib"
   },
   "types": "./index.d.ts",
   "main": "./index.js",
