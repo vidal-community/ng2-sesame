@@ -46,11 +46,6 @@ export class SesameService {
     this.check();
   }
 
-  canActivate(): Observable<boolean> {
-    return this.userInfo().take(1)
-      .map(userInfo => !!userInfo);
-  }
-
   public hasAnyRoles(roles: Array<string>): Observable<boolean> {
     return this.userInfo().map(userInfo =>
       roles.some((role) => userInfo && userInfo.roles && (userInfo.roles.indexOf(role) !== -1))
