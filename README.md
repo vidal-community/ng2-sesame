@@ -1,3 +1,3 @@
-Service Discovery for angular 2
+Sesame for angular 2
 
 TDB
