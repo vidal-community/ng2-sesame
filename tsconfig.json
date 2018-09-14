@@ -3,16 +3,21 @@
     "declaration": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "lib": ["es5", "dom", "es2015"],
+    "lib": [
+      "es5",
+      "dom",
+      "es2015"
+    ],
     "module": "commonjs",
     "moduleResolution": "node",
-    "removeComments": true,        
+    "removeComments": true,
     "outDir": "./",
     "sourceMap": true,
     "target": "es5",
     "typeRoots": [
       "../node_modules/@types"
-    ]
+    ],
+    "baseUrl": "./"
   },
   "files": [
     "src/index.ts"
@@ -21,6 +26,6 @@
     "node_modules"
   ],
   "angularCompilerOptions": {
-  "genDir": "./"
+    "genDir": "./"
   }
 }
