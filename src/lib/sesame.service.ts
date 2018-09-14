@@ -1,7 +1,7 @@
-import { Injectable, Inject, OpaqueToken } from '@angular/core';
+import { Injectable, Inject, InjectionToken } from '@angular/core';
 import { Http, Headers, Response } from '@angular/http';
 import { Observable, ReplaySubject } from 'rxjs/Rx';
-export const SESAME_CONFIG = new OpaqueToken('sesame.config');
+export const SESAME_CONFIG = new InjectionToken('sesame.config');
 import * as jsrsasign from 'jsrsasign';
 
 export interface SesameConfig {
@@ -27,7 +27,7 @@ export class JwtUtils {
     }
   }
 
-  parse(jwt){
+  parse(jwt) {
     const jwtSplit = jwt.split('.');
     return  JSON.parse(jsrsasign.b64utos(jwtSplit[1]));
   }

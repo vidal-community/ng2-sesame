@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/ng-packagr/ng-package.schema.json",
+  "dest": "./dist/@vidal-community/ng2-sesame",
+  "lib": {
+    "entryFile": "src/index.ts",
+    "umdModuleIds": {
+      "jsrsasign": "jsrsasign"
+    }
+  },
+  "whitelistedNonPeerDependencies": [
+    "."
+  ]
+}

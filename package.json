@@ -1,15 +1,20 @@
 {
-  "name": "vidal-ng2-sesame",
-  "version": "1.0.1",
+  "name": "@vidal-community/ng2-sesame",
+  "version": "1.0.13-1",
   "license": "MIT",
-  "angular-cli": {},
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:vidal-community/ng2-sesame.git"
+  },
   "scripts": {
     "test": "ng test --watch false",
     "lint": "ng lint",
-    "build": "rm -rf lib && ngc -p .",
-    "pack": "rm -rf lib vidal-*.tgz && ngc -p .",
-    "prepublish": "ngc -p .",
-    "postpublish": "rm -rf lib"
+    "prepare-prerelease": "npm version prerelease --no-git-tag-version && npm i",
+    "prepare-release": "npm version minor && npm i",
+    "build": "ng-packagr -p ng-package.json",
+    "package": "cd dist/@vidal-community/ng2-sesame && npm pack",
+    "publish": "npm publish dist/@vidal-community/ng2-sesame/vidal-community-ng2-sesame-*.tgz",
+    "build-and-publish": "npm run build && npm run package && npm run publish"
   },
   "types": "./index.d.ts",
   "main": "./index.js",
@@ -48,6 +53,7 @@
     "karma-coverage-istanbul-reporter": "^0.2.0",
     "karma-jasmine": "^1.1.2",
     "karma-jasmine-html-reporter": "^1.3.1",
+    "ng-packagr": "^4.1.1",
     "protractor": "^5.4.1",
     "rxjs-tslint": "^0.1.5",
     "ts-node": "1.2.1",

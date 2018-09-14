@@ -3,85 +3,16 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "service-dicovery": {
+    "ng2-sesame": {
       "root": "",
       "sourceRoot": "src",
       "projectType": "application",
       "targets": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-ng-packagr:build",
           "options": {
-            "outputPath": "dist",
-            "index": "src/index.html",
-            "main": "src/main.ts",
-            "tsConfig": "src/tsconfig.json",
-            "polyfills": "src/polyfills.ts",
-            "assets": [],
-            "styles": [],
-            "scripts": []
-          },
-          "configurations": {
-            "source": {
-              "fileReplacements": [
-                {
-                  "replace": "src/undefined",
-                  "with": "src/environments/environment.ts"
-                }
-              ]
-            },
-            "dev": {
-              "fileReplacements": [
-                {
-                  "replace": "src/undefined",
-                  "with": "src/environments/environment.ts"
-                }
-              ]
-            },
-            "prod": {
-              "fileReplacements": [
-                {
-                  "replace": "src/undefined",
-                  "with": "src/environments/environment.prod.ts"
-                }
-              ]
-            },
-            "production": {
-              "optimization": true,
-              "outputHashing": "all",
-              "sourceMap": false,
-              "extractCss": true,
-              "namedChunks": false,
-              "aot": true,
-              "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true
-            }
-          }
-        },
-        "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {
-            "browserTarget": "service-dicovery:build"
-          },
-          "configurations": {
-            "source": {
-              "browserTarget": "service-dicovery:build:source"
-            },
-            "dev": {
-              "browserTarget": "service-dicovery:build:dev"
-            },
-            "prod": {
-              "browserTarget": "service-dicovery:build:prod"
-            },
-            "production": {
-              "browserTarget": "service-dicovery:build:production"
-            }
-          }
-        },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "browserTarget": "service-dicovery:build"
+            "tsConfig": "src/tsconfig.lib.json",
+            "project": "ng-package.json"
           }
         },
         "test": {
@@ -90,39 +21,15 @@
             "main": "src/test.ts",
             "karmaConfig": "./karma.conf.js",
             "polyfills": "src/polyfills.ts",
-            "scripts": [],
-            "styles": [],
-            "assets": []
+            "tsConfig": "src/tsconfig.spec.json",
+            "watch": false
           }
         },
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
             "tsConfig": [
-              "src/tsconfig.json"
-            ],
-            "exclude": []
-          }
-        }
-      }
-    },
-    "service-dicovery-e2e": {
-      "root": "e2e",
-      "sourceRoot": "e2e",
-      "projectType": "application",
-      "targets": {
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
-          "options": {
-            "protractorConfig": "./protractor.conf.js",
-            "devServerTarget": "service-dicovery:serve"
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "e2e/tsconfig.json"
+              "src/tsconfig.lib.json"
             ],
             "exclude": []
           }
@@ -130,11 +37,12 @@
       }
     }
   },
-  "defaultProject": "service-dicovery",
+  "defaultProject": "ng2-sesame",
   "schematics": {
     "@schematics/angular:component": {
       "styleext": "css"
     },
-    "@schematics/angular:directive": {}
+    "@schematics/angular:directive": {
+    }
   }
 }
