@@ -15,10 +15,15 @@ const userInfoStub = {
   roles: ['ROLE1', 'ROLE2']
 };
 
+const jwtToken = 'dummy.' + btoa(JSON.stringify(userInfoStub)) + '.dummy'
+
 const http = {
   'http://sesame/api/keys/public' : { body: 'FAKE_KEY' },
   'http://sesame/api/user/jwt/check': {
-    body: 'dummy.' + btoa(JSON.stringify(userInfoStub)) + '.dummy'
+    body: jwtToken
+  },
+  'http://sesame/api/user/jwt': {
+    body: jwtToken
   }
 };
 
