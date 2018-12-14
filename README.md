@@ -12,12 +12,15 @@ Install this library :
 ## Angular compatibility
 
 You have to use the `ng2-sesame` version that is compatible with your version of [Angular](https://github.com/angular/angular).
+
+You need `@angular` dependencies to use this library.
+
 Here is the compatibility matrix:
 
 | ng2-sesame | Angular |
 | ---------- | ------- |
 | ^1         | <=4     |
-| ^2         | ^6      |
+| ^2         | >=6      |
 
 See compatible versions on [npm semver calculator](https://semver.npmjs.com).
 
