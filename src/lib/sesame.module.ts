@@ -1,9 +1,9 @@
-import { NgModule, ModuleWithProviders } from '@angular/core';
-import { HttpModule, Http } from '@angular/http';
-import {SesameService, JwtUtils, SESAME_CONFIG} from './sesame.service';
+import {ModuleWithProviders, NgModule} from '@angular/core';
+import {JwtUtils, SESAME_CONFIG, SesameService} from './sesame.service';
+import {HttpClientModule} from '@angular/common/http';
 
 @NgModule({
-    imports: [HttpModule]
+    imports: [HttpClientModule]
 })
 export class SesameModule {
     static forRoot(apiEndpoint): ModuleWithProviders {

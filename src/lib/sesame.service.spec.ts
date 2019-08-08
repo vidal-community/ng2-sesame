@@ -1,7 +1,7 @@
-import { TestBed, async, inject } from '@angular/core/testing';
-import { MockBackend } from '@angular/http/testing';
-import { HttpModule, Http, BaseRequestOptions, Response, ResponseOptions, RequestMethod } from '@angular/http';
-import { SesameService, SESAME_CONFIG, JwtUtils } from './sesame.service';
+import {inject, TestBed} from '@angular/core/testing';
+import {JwtUtils, SESAME_CONFIG, SesameService} from './sesame.service';
+import {HttpClient, HttpClientModule} from '@angular/common/http';
+import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
 
 const userInfoStub = {
   iss: 'sesame',
@@ -15,82 +15,84 @@ const userInfoStub = {
   roles: ['ROLE1', 'ROLE2']
 };
 
-const jwtToken = 'dummy.' + btoa(JSON.stringify(userInfoStub)) + '.dummy'
-
-const http = {
-  'http://sesame/api/keys/public' : { body: 'FAKE_KEY' },
-  'http://sesame/api/user/jwt/check': {
-    body: jwtToken
-  },
-  'http://sesame/api/user/jwt': {
-    body: jwtToken
-  }
-};
+const jwtToken = 'dummy.' + btoa(JSON.stringify(userInfoStub)) + '.dummy';
 
 describe('SesameService', () => {
+  let httpClient: HttpClient;
+  let httpTestingController: HttpTestingController;
   const jwtUtils = new JwtUtils();
 
-  jwtUtils.validate = () => {};
+  jwtUtils.validate = () => {
+  };
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpModule],
-
+      imports: [HttpClientModule, HttpClientTestingModule],
       providers: [
-        MockBackend,
-        BaseRequestOptions,
-        {
-          provide: Http,
-          useFactory: (backend: MockBackend, options: BaseRequestOptions) => {
-            backend.connections.subscribe((connection) => {
-              connection.mockRespond(new Response(
-                new ResponseOptions(http[connection.request.url])
-              ));
-            });
-            return new Http(backend, options);
-          },
-          deps: [MockBackend, BaseRequestOptions]
-        },
-        { provide: SESAME_CONFIG, useValue: { apiEndpoint: 'http://sesame/api' } },
-        { provide: JwtUtils, useValue: jwtUtils},
+        {provide: SESAME_CONFIG, useValue: {apiEndpoint: 'http://sesame/api'}},
+        {provide: JwtUtils, useValue: jwtUtils},
         SesameService
       ]
     });
+    httpClient = TestBed.get(HttpClient);
+    httpTestingController = TestBed.get(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTestingController.verify();
   });
 
   it('should retrieve UserInfo',
-    inject([SesameService, MockBackend], (sesame: SesameService, backend: MockBackend) => {
-      return sesame.userInfo().subscribe((userInfo) =>
+    inject([SesameService], (sesame: SesameService) => {
+      sesame.userInfo().subscribe((userInfo) =>
         expect(userInfo.username).toEqual('toto')
       );
+      flushTestData();
     })
   );
 
   it('should has role ROLE1',
-    inject([SesameService, MockBackend], (sesame: SesameService, backend: MockBackend) => {
-      return sesame.hasRole('ROLE1').subscribe((hasRole) =>
+    inject([SesameService], (sesame: SesameService) => {
+      sesame.hasRole('ROLE1').subscribe((hasRole) =>
         expect(hasRole).toBeTruthy()
       );
+      flushTestData();
     })
   );
 
   it('should has one role NOT_AVAILABLE,ROLE1',
-    inject([SesameService, MockBackend], (sesame: SesameService, backend: MockBackend) => {
-      return sesame.hasAnyRoles(['NOT_AVAILABLE', 'ROLE1']).subscribe((hasRole) =>
+    inject([SesameService], (sesame: SesameService) => {
+      sesame.hasAnyRoles(['NOT_AVAILABLE', 'ROLE1']).subscribe((hasRole) =>
         expect(hasRole).toBeTruthy()
       );
+      flushTestData();
     })
   );
 
   it('should call server for login',
-    inject([SesameService, MockBackend], (sesame: SesameService, backend: MockBackend) => {
-      backend.connections.subscribe((connection) => {
-        expect(connection.request.url).toBe('http://sesame/api/user/jwt');
-        expect(connection.request.method).toBe(RequestMethod.Get);
-        expect(connection.request.withCredentials).toBeTruthy();
-        expect(connection.request.headers.get('Authorization')).toBe('Basic ' + btoa('toto:password'));
-      });
+    inject([SesameService], (sesame: SesameService) => {
       sesame.login('toto', 'password');
+
+      const keysReqs = httpTestingController.match('http://sesame/api/keys/public');
+      const checkReq = httpTestingController.expectOne('http://sesame/api/user/jwt/check');
+
+      keysReqs[0].flush('FAKE_KEY');
+      keysReqs[1].flush('FAKE_KEY');
+      checkReq.flush(jwtToken);
+
+      const req = httpTestingController.expectOne('http://sesame/api/user/jwt');
+      expect(req.request.method).toEqual('GET');
+      expect(req.request.withCredentials).toBeTruthy();
+      expect(req.request.headers.get('Authorization')).toBe('Basic ' + btoa('toto:password'));
     })
   );
+
+  function flushTestData() {
+    const keysReq = httpTestingController.expectOne('http://sesame/api/keys/public');
+    const checkReq = httpTestingController.expectOne('http://sesame/api/user/jwt/check');
+
+    keysReq.flush('FAKE_KEY');
+    checkReq.flush(jwtToken);
+  }
+
 });

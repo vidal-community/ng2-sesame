@@ -1,8 +1,9 @@
 import { Injectable, Inject, InjectionToken } from '@angular/core';
-import { Http, Headers, Response } from '@angular/http';
-import { Observable, ReplaySubject } from 'rxjs/Rx';
+import {Observable, of, ReplaySubject, zip} from 'rxjs';
 export const SESAME_CONFIG = new InjectionToken('sesame.config');
 import * as jsrsasign from 'jsrsasign';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
+import {catchError, map, mergeMap} from 'rxjs/operators';
 
 export interface SesameConfig {
   apiEndpoint: string;
@@ -35,21 +36,22 @@ export class JwtUtils {
 
 @Injectable()
 export class SesameService {
+
   private pemObservable: Observable<string>;
   private userInfoObservable = new ReplaySubject<UserInfo>(1);
-  constructor(
-    private http: Http,
+
+
+  constructor(private http: HttpClient,
     @Inject(SESAME_CONFIG) private sesameConfig: any,
-    private jwtUtils: JwtUtils
-    ) {
-    this.pemObservable = http.get(`${sesameConfig.apiEndpoint}/keys/public`).map(r => r.text());
+    private jwtUtils: JwtUtils) {
+    this.pemObservable = http.get(`${sesameConfig.apiEndpoint}/keys/public`, {responseType: 'text'});
     this.check();
   }
 
   public hasAnyRoles(roles: Array<string>): Observable<boolean> {
-    return this.userInfo().map(userInfo =>
+    return this.userInfo().pipe(map(userInfo =>
       roles.some((role) => userInfo && userInfo.roles && (userInfo.roles.indexOf(role) !== -1))
-    );
+    ));
   };
 
   public hasRole(role: string): Observable<boolean> {
@@ -59,18 +61,17 @@ export class SesameService {
   public login(username, password): void {
     this.doOnUserInfo(undefined);
     const authdata = btoa(username + ':' + password);
-    const headers = new Headers({
+    const headers = new HttpHeaders({
       'Authorization': `Basic ${authdata}`
     });
 
     const jwtObservable = this.http
       .get(`${this.sesameConfig.apiEndpoint}/user/jwt`, {
-        withCredentials: true, headers
-      })
-      .map((r: Response) => r.text());
+        withCredentials: true, headers,
+        responseType: 'text'
+      });
 
-    jwtObservable
-      .zip(this.pemObservable)
+    zip(jwtObservable, this.pemObservable)
       .subscribe(([jwt, pem]) =>
         this.checkJwt(jwt, pem)
       );
@@ -88,19 +89,18 @@ export class SesameService {
   }
 
   public myFaceUrl(): Observable<string> {
-    return this.userInfo().mergeMap(userInfo => {
+    return this.userInfo().pipe(mergeMap(userInfo => {
       if (!userInfo) {
-        return Observable.of(undefined);
+        return of(undefined);
       }
       return this.faceUrl(userInfo.username);
-    });
+    }));
   }
 
   public faceUrl(login: string): Observable<string> {
     return this.http
-      .get(`${this.sesameConfig.apiEndpoint}/face/${login}`)
-      .map(response => response.text())
-      .catch(() => Observable.of(undefined));
+      .get(`${this.sesameConfig.apiEndpoint}/face/${login}`, {responseType: 'text'})
+      .pipe(catchError(() => of(undefined)));
   }
 
   private checkJwt(jwt, pem): UserInfo {
@@ -145,15 +145,15 @@ export class SesameService {
   private check(): void {
     const httpCheck = this.http
       .get(`${this.sesameConfig.apiEndpoint}/user/jwt/check`, {
-        withCredentials: true
-      }).map(r => r.text());
-    Observable
-      .zip(this.pemObservable, httpCheck)
-      .subscribe(([pem, jwt]) => {
-        this.checkJwt(jwt, pem);
-      },
-      error => {
-        this.doOnUserInfo(undefined);
+        withCredentials: true,
+        responseType: 'text'
       });
-  };
+    zip(this.pemObservable, httpCheck)
+      .subscribe(([pem, jwt]) => {
+          this.checkJwt(jwt, pem);
+        },
+        error => {
+          this.doOnUserInfo(undefined);
+        });
+  }
 }
