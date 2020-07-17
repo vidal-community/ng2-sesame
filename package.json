@@ -20,7 +20,7 @@
   "main": "./index.js",
   "dependencies": {
     "core-js": "2.6.9",
-    "jsrsasign": "^8.0.12",
+    "jsrsasign": "^8.0.19",
     "rxjs": "6.5.2",
     "ts-helpers": "^1.1.2",
     "zone.js": "0.9.1"
