@@ -19,7 +19,9 @@ export interface UserInfo {
 }
 export type UserInfoCallback = (userInfo: UserInfo, userInfoOld?: UserInfo) => void;
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class JwtUtils {
   validate(jwt, pem) {
     const isValid = jsrsasign.KJUR.jws.JWS.verify(jwt, pem, ['RS256']);
@@ -34,7 +36,9 @@ export class JwtUtils {
   }
 }
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class SesameService {
 
   private pemObservable: Observable<string>;

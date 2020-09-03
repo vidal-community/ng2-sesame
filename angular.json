@@ -42,7 +42,9 @@
     "@schematics/angular:component": {
       "styleext": "css"
     },
-    "@schematics/angular:directive": {
-    }
+    "@schematics/angular:directive": {}
+  },
+  "cli": {
+    "analytics": false
   }
 }
