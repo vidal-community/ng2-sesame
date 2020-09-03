@@ -22,6 +22,7 @@ Here is the compatibility matrix:
 | ^1         | <=4     |
 | ^2         | >=6      |
 | ^3         | >=8.2.0     |
+| ^4         | >=10.1.0     |
 
 See compatible versions on [npm semver calculator](https://semver.npmjs.com).
 
