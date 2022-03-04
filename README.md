@@ -17,12 +17,13 @@ You need `@angular` dependencies to use this library.
 
 Here is the compatibility matrix:
 
-| ng2-sesame | Angular |
-| ---------- | ------- |
-| ^1         | <=4     |
+| ng2-sesame | Angular  |
+|------------|----------|
+| ^1         | <=4      |
 | ^2         | >=6      |
-| ^3         | >=8.2.0     |
-| ^4         | >=10.1.0     |
+| ^3         | >=8.2.0  |
+| ^4         | >=10.1.0 |
+| ^5         | >=11.2.0 |
 
 See compatible versions on [npm semver calculator](https://semver.npmjs.com).
 
