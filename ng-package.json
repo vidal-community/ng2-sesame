@@ -7,7 +7,7 @@
       "jsrsasign": "jsrsasign"
     }
   },
-  "whitelistedNonPeerDependencies": [
+  "allowedNonPeerDependencies": [
     "."
   ]
 }
