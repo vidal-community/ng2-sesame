@@ -36,13 +36,11 @@ See compatible versions on [npm semver calculator](https://semver.npmjs.com).
 
 To publish a pre-release, run:
 
-    npm run prepare-prerelease
-    npm run build-and-publish
+    npm run prerelease
     
 To publish a release, run:
 
-    npm run prepare-release
-    npm run build-and-publish
+    npm run major-release
     
 It will increase version with chosen strategy, then build and package your 
 local workspace, and finally publish it on `npm`.
