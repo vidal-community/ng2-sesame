@@ -28,7 +28,6 @@
       }
     }
   },
-  "defaultProject": "ng2-sesame",
   "schematics": {
     "@schematics/angular:component": {
       "styleext": "css"
