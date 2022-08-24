@@ -3,6 +3,11 @@ Vidal Sesame for Angular
 
 ![alt travis](https://api.travis-ci.org/vidal-community/ng2-sesame.svg?branch=master)
 
+# Requirements
+
+- Java 17
+- volta (https://volta.sh/)
+
 # Use It
 
 Install this library :
