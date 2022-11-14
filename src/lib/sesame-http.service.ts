@@ -1,13 +1,9 @@
-import {Inject, Injectable, InjectionToken} from '@angular/core';
+import {Inject, Injectable} from '@angular/core';
 import {Observable, of} from 'rxjs';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {catchError} from 'rxjs/operators';
-
-export const SESAME_CONFIG = new InjectionToken('sesame.config');
-
-export interface SesameConfig {
-  apiEndpoint: string;
-}
+import {Language} from './language.model';
+import {SESAME_CONFIG, SesameConfig} from './sesame.service';
 
 @Injectable({
   providedIn: 'root'
@@ -15,7 +11,7 @@ export interface SesameConfig {
 export class SesameHttpService {
 
   constructor(private http: HttpClient,
-              @Inject(SESAME_CONFIG) private sesameConfig: any) {
+              @Inject(SESAME_CONFIG) private sesameConfig: SesameConfig) {
   }
 
   getPem(): Observable<string> {
@@ -34,6 +30,24 @@ export class SesameHttpService {
         withCredentials: true, headers,
         responseType: 'text'
       });
+  }
+
+  fetchLanguage(): Observable<Language> {
+    return this.http
+      .get<Language>(`${this.sesameConfig.apiEndpoint}/user/language`, {
+        withCredentials: true
+      });
+  }
+
+  public updateLanguage(language: Language): Observable<Language> {
+    return this.http
+      .post<Language>(`${this.sesameConfig.apiEndpoint}/user/language/save/${language.code}`, {}, {
+        withCredentials: true
+      });
+  }
+
+  public getAllLanguages(): Observable<Language[]> {
+    return this.http.get<Language[]>(`${this.sesameConfig.apiEndpoint}/language/all`);
   }
 
   public faceUrl(login: string): Observable<string> {
