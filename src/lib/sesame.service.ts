@@ -1,8 +1,15 @@
-import {Injectable} from '@angular/core';
+import {Inject, Injectable, InjectionToken} from '@angular/core';
 import {Observable, of, ReplaySubject, zip} from 'rxjs';
 import * as jsrsasign from 'jsrsasign';
-import {map, mergeMap} from 'rxjs/operators';
+import {map, mergeMap, switchMap} from 'rxjs/operators';
+import {Language} from './language.model';
 import {SesameHttpService} from './sesame-http.service';
+
+export const SESAME_CONFIG = new InjectionToken('sesame.config');
+
+export interface SesameConfig {
+  apiEndpoint: string;
+}
 
 export const JWT_COOKIE = 'authentication-jwt';
 
@@ -11,6 +18,7 @@ export interface UserInfo {
   roles: Array<string>;
   username: string;
   mail: string;
+  language: Language;
 }
 
 export type UserInfoCallback = (userInfo: UserInfo, userInfoOld?: UserInfo) => void;
@@ -41,7 +49,8 @@ export class SesameService {
   private userInfoObservable = new ReplaySubject<UserInfo>(1);
 
   constructor(private sesameHttp: SesameHttpService,
-              private jwtUtils: JwtUtils) {
+              private jwtUtils: JwtUtils,
+              @Inject(SESAME_CONFIG) private sesameConfig: SesameConfig) {
     this.pemObservable = sesameHttp.getPem();
     this.check();
   }
@@ -63,9 +72,20 @@ export class SesameService {
     const jwtObservable = this.sesameHttp.getJwtToken(username, password);
 
     zip(jwtObservable, this.pemObservable)
-      .subscribe(([jwt, pem]) =>
-        this.checkJwt(jwt, pem)
-      );
+      .pipe(
+        map(([jwt, pem]) => this.checkJwt(jwt, pem)),
+        switchMap(userInfo => this.populateLanguage(userInfo)),
+      )
+      .subscribe(userInfo => this.doOnUserInfo(userInfo));
+  }
+
+  private populateLanguage(userInfo: UserInfo): Observable<UserInfo> {
+    return this.sesameHttp.fetchLanguage().pipe(
+      map(language => {
+        userInfo.language = language;
+        return userInfo;
+      })
+    );
   }
 
   public logout(): void {
@@ -79,6 +99,10 @@ export class SesameService {
     return this.userInfoObservable;
   }
 
+  public updateLanguage(language: Language): Observable<Language> {
+    return this.sesameHttp.updateLanguage(language);
+  }
+
   public myFaceUrl(): Observable<string> {
     return this.userInfo().pipe(mergeMap(userInfo => {
       if (!userInfo) {
@@ -86,6 +110,10 @@ export class SesameService {
       }
       return this.faceUrl(userInfo.username);
     }));
+  }
+
+  public getAllLanguages(): Observable<Language[]> {
+    return this.sesameHttp.getAllLanguages();
   }
 
   public faceUrl(login: string): Observable<string> {
@@ -111,7 +139,7 @@ export class SesameService {
     let c: string;
 
     for (let i = 0; i < caLen; i += 1) {
-      c = ca[i].replace(/^\s\+/g, '');
+      c = ca[i].replace(/^\s+/g, '');
       if (c.indexOf(cookieName) === 0) {
         return c.substring(cookieName.length, c.length);
       }
@@ -136,11 +164,13 @@ export class SesameService {
     }
     const httpCheck = this.sesameHttp.check();
     zip(this.pemObservable, httpCheck)
-      .subscribe(([pem, jwt]) => {
-          this.checkJwt(jwt, pem);
-        },
-        error => {
-          this.doOnUserInfo(undefined);
-        });
+      .pipe(
+        map(([pem, jwt]) => this.checkJwt(jwt, pem)),
+        switchMap(userInfo => this.populateLanguage(userInfo)),
+      )
+      .subscribe({
+        next: (userInfo) => this.doOnUserInfo(userInfo),
+        error: () => this.doOnUserInfo(undefined)
+      });
   }
 }

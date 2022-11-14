@@ -1,5 +1,5 @@
 import {ModuleWithProviders, NgModule} from '@angular/core';
-import {JwtUtils, SESAME_CONFIG, SesameService} from './sesame.service';
+import {JwtUtils, SesameService, SESAME_CONFIG} from './sesame.service';
 import {HttpClientModule} from '@angular/common/http';
 
 @NgModule({
