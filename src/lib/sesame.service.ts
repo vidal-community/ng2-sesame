@@ -147,6 +147,9 @@ export class SesameService {
   }
 
   private check(): void {
+    if (!this.getCookie(JWT_COOKIE)) {
+      return;
+    }
     const httpCheck = this.http
       .get(`${this.sesameConfig.apiEndpoint}/user/jwt/check`, {
         withCredentials: true,
