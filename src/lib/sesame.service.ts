@@ -80,7 +80,7 @@ export class SesameService {
   }
 
   private populateLanguage(userInfo: UserInfo): Observable<UserInfo> {
-    return this.sesameHttp.fetchLanguage().pipe(
+    return this.sesameHttp.fetchLanguage(userInfo.username).pipe(
       map(language => {
         userInfo.language = language;
         return userInfo;
@@ -99,8 +99,8 @@ export class SesameService {
     return this.userInfoObservable;
   }
 
-  public updateLanguage(language: Language): Observable<Language> {
-    return this.sesameHttp.updateLanguage(language);
+  public updateLanguage(username: string, language: Language): Observable<Language> {
+    return this.sesameHttp.updateLanguage(username, language);
   }
 
   public myFaceUrl(): Observable<string> {
