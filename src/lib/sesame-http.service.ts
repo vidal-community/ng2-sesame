@@ -32,16 +32,16 @@ export class SesameHttpService {
       });
   }
 
-  fetchLanguage(): Observable<Language> {
+  fetchLanguage(username: string): Observable<Language> {
     return this.http
-      .get<Language>(`${this.sesameConfig.apiEndpoint}/user/language`, {
+      .get<Language>(`${this.sesameConfig.apiEndpoint}/user/${username}/language`, {
         withCredentials: true
       });
   }
 
-  public updateLanguage(language: Language): Observable<Language> {
+  public updateLanguage(username: string, language: Language): Observable<Language> {
     return this.http
-      .post<Language>(`${this.sesameConfig.apiEndpoint}/user/language/save/${language.code}`, {}, {
+      .post<Language>(`${this.sesameConfig.apiEndpoint}/user/${username}/language/save/${language.code}`, {}, {
         withCredentials: true
       });
   }
