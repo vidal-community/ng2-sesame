@@ -160,6 +160,7 @@ export class SesameService {
 
   private check(): void {
     if (!this.getCookie(JWT_COOKIE)) {
+      this.doOnUserInfo(undefined);
       return;
     }
     const httpCheck = this.sesameHttp.check();
