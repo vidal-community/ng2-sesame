@@ -48,6 +48,8 @@ To publish a pre-release, run:
 To publish a release, run:
 
     npm run major-release
-    
+or   
+    npm run minor-release
+
 It will increase version with chosen strategy, then build and package your 
 local workspace, and finally publish it on `npm`.
