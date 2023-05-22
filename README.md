@@ -1,8 +1,6 @@
 Vidal Sesame for Angular
 ===
 
-![alt travis](https://api.travis-ci.org/vidal-community/ng2-sesame.svg?branch=master)
-
 # Requirements
 
 - Java 17
@@ -32,6 +30,7 @@ Here is the compatibility matrix:
 | ^12        | >=12     |
 | ^13        | >=13     |
 | ^14        | >=14     |
+| ^15        | >=15     |
 
 See compatible versions on [npm semver calculator](https://semver.npmjs.com).
 
@@ -48,7 +47,8 @@ To publish a pre-release, run:
 To publish a release, run:
 
     npm run major-release
-or   
+or 
+
     npm run minor-release
 
 It will increase version with chosen strategy, then build and package your 
