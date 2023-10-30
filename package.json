@@ -26,8 +26,7 @@
     "core-js": "3.6.5",
     "jsrsasign": "^10.5.24",
     "rxjs": "^7.8.0",
-    "ts-helpers": "^1.1.2",
-    "zone.js": "~0.13.0"
+    "ts-helpers": "^1.1.2"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^16.2.6",
