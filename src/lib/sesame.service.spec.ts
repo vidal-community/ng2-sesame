@@ -2,14 +2,10 @@ import {inject, TestBed} from '@angular/core/testing';
 import {JwtUtils, SESAME_CONFIG, SesameService} from './sesame.service';
 import {HttpClient, HttpClientModule} from '@angular/common/http';
 import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {AuthService} from './auth/auth.service';
 
-const userInfoStub = {
-  iss: 'sesame',
-  aud: 'Vidal',
-  jti: 'cyH1EfP_VfNaQfNoBZ8W2Q',
-  iat: 1487606594,
-  nbf: 1487606474,
-  sub: 'userInfo',
+export const userInfoStub = {
+  jwt: 'cyH1EfP_VfNaQfNoBZ8W2Q',
   username: 'toto',
   mail: 'toto@vidal.fr',
   roles: ['ROLE1', 'ROLE2']
@@ -25,12 +21,17 @@ describe('SesameService', () => {
   jwtUtils.validate = () => {
   };
 
+  const mockAuthService = {
+    refreshCurrentRoute() {}
+  };
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [HttpClientModule, HttpClientTestingModule],
       providers: [
         {provide: SESAME_CONFIG, useValue: {apiEndpoint: 'http://sesame/api'}},
         {provide: JwtUtils, useValue: jwtUtils},
+        {provide: AuthService, useValue: mockAuthService},
         SesameService
       ]
     });

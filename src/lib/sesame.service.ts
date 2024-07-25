@@ -1,9 +1,11 @@
-import { Injectable, Inject, InjectionToken } from '@angular/core';
+import {Inject, Injectable, InjectionToken} from '@angular/core';
 import {Observable, of, ReplaySubject, zip} from 'rxjs';
-export const SESAME_CONFIG = new InjectionToken('sesame.config');
 import * as jsrsasign from 'jsrsasign';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {catchError, map, mergeMap} from 'rxjs/operators';
+import {AuthService} from './auth/auth.service';
+
+export const SESAME_CONFIG = new InjectionToken('sesame.config');
 
 export interface SesameConfig {
   apiEndpoint: string;
@@ -47,6 +49,7 @@ export class SesameService {
 
   constructor(private http: HttpClient,
     @Inject(SESAME_CONFIG) private sesameConfig: any,
+    private authService: AuthService,
     private jwtUtils: JwtUtils) {
     this.pemObservable = http.get(`${sesameConfig.apiEndpoint}/keys/public`, {responseType: 'text'});
     this.check();
@@ -85,6 +88,7 @@ export class SesameService {
     this.http.get(`${this.sesameConfig.apiEndpoint}/user/jwt/logout`, { withCredentials: true }).subscribe(() => {
       this.deleteCookie(JWT_COOKIE);
       this.doOnUserInfo(undefined);
+      this.authService.refreshCurrentRoute();
     });
   }
 
@@ -113,11 +117,16 @@ export class SesameService {
     this.setCookie(JWT_COOKIE, jwt, 360, '/');
     userInfo.jwt = jwt;
     this.doOnUserInfo(userInfo);
+    this.authService.refreshCurrentRoute();
     return userInfo;
   };
 
   private doOnUserInfo(userInfo: UserInfo) {
     this.userInfoObservable.next(userInfo);
+  }
+
+  checkAuthorized() {
+    return this.authService.checkAuthorized(this.userInfo(), this.hasAnyRoles(this.authService.getRoles()))
   }
 
   private getCookie(name: string): string {
@@ -157,6 +166,8 @@ export class SesameService {
           this.checkJwt(jwt, pem);
         },
         error => {
+          // TODO: Fix the 400 error in a future commit
+          console.log('check error', error);
           this.doOnUserInfo(undefined);
         });
   }
