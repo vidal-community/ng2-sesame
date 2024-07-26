@@ -24,9 +24,15 @@ describe('AuthService', () => {
     service.roles.next(['ROLE_ADMIN', 'GRPGAP-DPT-DEV']);
     expect(service.getRoles()).toEqual(['ROLE_ADMIN', 'GRPGAP-DPT-DEV']);
   });
+
+  it('should have any role', () => {
+    service.roles.next(['ROLE_ADMIN', 'GRPGAP-DPT-DEV']);
+    expect(service.hasAnyRoles(userInfoStub, ['ROLE_ADMIN', 'GRPGAP-DPT-DEV'])).toEqual(false);
+    expect(service.hasAnyRoles(userInfoStub, ['ROLE1'])).toEqual(true);
+  });
 });
 
-describe('checkAuthorized', () => {
+describe('check Authorization', () => {
   const createAuthService = () => {
     TestBed.configureTestingModule({
       imports: [RouterTestingModule],
@@ -34,28 +40,30 @@ describe('checkAuthorized', () => {
     });
     return TestBed.inject(AuthService);
   };
+
   it('should redirect when no connected user', (done ) => {
     const service = createAuthService();
-    service.checkAuthorized(of(undefined), of(false)).subscribe((result) => {
+    service.checkAuthorized(of(undefined)).subscribe((result) => {
       expect(result).toBeInstanceOf(UrlTree);
       done();
     });
   });
 
-  it('should redirect when user is not allowed', (done ) => {
+  it('should redirect when no connected user', () => {
     const service = createAuthService();
-    service.checkAuthorized(of(userInfoStub), of(false)).subscribe((result) => {
-      expect(result).toBeInstanceOf(UrlTree);
-      done();
-    });
+    expect(service.doAuthorize(undefined)).toBeInstanceOf(UrlTree);
   });
 
-  it('should allow route when user is allowed', (done ) => {
+  it('should redirect when user is not allowed', () => {
     const service = createAuthService();
-    service.checkAuthorized(of(userInfoStub), of(true)).subscribe((result) => {
-      expect(result).toBe(true);
-      done();
-    });
+    service.roles.next(['ROLE_ADMIN']);
+    expect(service.doAuthorize(userInfoStub)).toBeInstanceOf(UrlTree);
+  });
+
+  it('should allow route when user is allowed', () => {
+    const service = createAuthService();
+    service.roles.next(['ROLE1']);
+    expect(service.doAuthorize(userInfoStub)).toBe(true);
   });
 
 });

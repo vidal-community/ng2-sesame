@@ -5,7 +5,7 @@ import {UserInfo} from '../sesame.service';
 import {Router, UrlTree} from '@angular/router';
 import {map} from 'rxjs/operators';
 
-export type AuthConfig = {groups: string[]};
+export type AuthConfig = {groups: string[], homeUrl: string};
 
 @Injectable({
   providedIn: 'root'
@@ -13,36 +13,49 @@ export type AuthConfig = {groups: string[]};
 export class AuthService {
 
   roles = new BehaviorSubject<string[]>(null);
+  homeUrl: string;
 
   constructor(
     @Inject(LIBRARY_CONFIG) config: AuthConfig,
     private router: Router,
-){
+  ){
     this.roles.next(config.groups);
+    this.homeUrl = config.homeUrl;
   }
 
   getRoles(): string[] {
     return this.roles.getValue();
   }
 
-  checkAuthorized(userInfo: Observable<UserInfo>, isAuthorized: Observable<boolean>): Observable<UrlTree | boolean> {
-    return combineLatest([userInfo, isAuthorized]).pipe(
-      map(([userInfo, authorized]) => {
-        if (!userInfo) {
-          return this.router.parseUrl('disconnected');
-        }
-
-        if (!authorized) {
-          return this.router.parseUrl('unauthorized');
-        }
-
-        return true;
+  checkAuthorized(userInfo: Observable<UserInfo>): Observable<UrlTree | boolean> {
+    return userInfo.pipe(
+      map(userInfo => {
+        return this.doAuthorize(userInfo);
       })
     );
   }
 
-  refreshCurrentRoute() {
-    const path = this.router.config.find(route => '/' + route.path !== this.router.url)?.path;
-    this.router.navigate(['/' + path ?? '']);
+  doAuthorize(userInfo: UserInfo) {
+    if (!userInfo) {
+      return this.router.parseUrl('disconnected');
+    }
+    const authorized = this.hasAnyRoles(userInfo, this.getRoles());
+    if (!authorized) {
+      return this.router.parseUrl('unauthorized');
+    }
+    return true;
+  }
+
+  hasAnyRoles(userInfo: UserInfo, roles: Array<string>): boolean {
+    return roles.some((role) => userInfo && userInfo.roles && (userInfo.roles.indexOf(role) !== -1));
+  };
+
+  authorizeThenRedirect(userInfo: UserInfo) {
+    const result = this.doAuthorize(userInfo);
+    if (result instanceof UrlTree) {
+      this.router.navigateByUrl(result);
+    } else {
+      this.router.navigate([this.homeUrl]);
+    }
   }
 }
