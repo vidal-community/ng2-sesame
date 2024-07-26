@@ -20,19 +20,21 @@ You need `@angular` dependencies to use this library.
 
 Here is the compatibility matrix:
 
-| ng2-sesame | Angular  |
-|------------|----------|
-| ^1         | <=4      |
-| ^2         | >=6      |
-| ^3         | >=8.2.0  |
-| ^4         | >=10.1.0 |
-| ^5         | >=11.2.0 |
-| ^12        | >=12     |
-| ^13        | >=13     |
-| ^14        | >=14     |
-| ^15        | >=15     |
-| ^16        | >=16     |
-| ^17        | >=17     |
+Please use the ng2-sesame branch corresponding to your Angular version.
+
+| ng2-sesame | Angular  | Branch to develop |
+|------------|----------|-------------------|
+| ^1         | <=4      | N/A               |
+| ^2         | >=6      | N/A               |
+| ^3         | >=8.2.0  | N/A               |
+| ^4         | >=10.1.0 | N/A               |
+| ^5         | >=11.2.0 | N/A               |
+| ^12        | >=12     | N/A               |
+| ^13        | >=13     | angular13         |
+| ^14        | >=14     | angular14         |
+| ^15        | >=15     | N/A               |
+| ^16        | >=16     | angular16         |
+| ^17        | >=17     | angular17         |
 
 See compatible versions on [npm semver calculator](https://semver.npmjs.com).
 
