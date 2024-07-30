@@ -1,98 +1,130 @@
-import {inject, TestBed} from '@angular/core/testing';
-import {JwtUtils, SESAME_CONFIG, SesameService} from './sesame.service';
-import {HttpClient, HttpClientModule} from '@angular/common/http';
-import {HttpClientTestingModule, HttpTestingController} from '@angular/common/http/testing';
+import {TestBed} from '@angular/core/testing';
+import {JWT_COOKIE, JwtUtils, SESAME_CONFIG, SesameService, UserInfo} from './sesame.service';
+import {SesameHttpService} from './sesame-http.service';
+import {of} from 'rxjs';
 
-const userInfoStub = {
-  iss: 'sesame',
-  aud: 'Vidal',
-  jti: 'cyH1EfP_VfNaQfNoBZ8W2Q',
-  iat: 1487606594,
-  nbf: 1487606474,
-  sub: 'userInfo',
+let sesame: SesameService;
+import {AuthService} from './auth/auth.service';
+
+export const userInfoStub = {
+  jwt: 'cyH1EfP_VfNaQfNoBZ8W2Q',
   username: 'toto',
   mail: 'toto@vidal.fr',
   roles: ['ROLE1', 'ROLE2']
+} as UserInfo;
+
+const sesameHttpMock = {
+  'getPem' : jasmine.createSpy('getPem'),
+  'getJwtToken' : jasmine.createSpy('getJwtToken'),
+  'faceUrl' : jasmine.createSpy('faceUrl'),
+  'check' : jasmine.createSpy('check'),
+  'logout' : jasmine.createSpy('logout')
 };
 
 const jwtToken = 'dummy.' + btoa(JSON.stringify(userInfoStub)) + '.dummy';
+const cookie = 'authentication-jwt=dummy.eyJ1c2VybmFtZSI6InRvdG8iLCJtYWlsIjoidG90b0B2aWRhbC5mciIsImxhbmd1YWdlIjp7ImNvZGUiOiJmcmEiLCJsYWJlbCI6IkZyYW5jYWlzIn0sInJvbGVzIjpbIlJPTEUxIiwiUk9MRTIiXX0=.dummy';
+
+function clearMocks() {
+  sesameHttpMock.getPem.calls.reset();
+  sesameHttpMock.getJwtToken.calls.reset();
+  sesameHttpMock.faceUrl.calls.reset();
+  sesameHttpMock.check.calls.reset();
+  sesameHttpMock.logout.calls.reset();
+}
 
 describe('SesameService', () => {
-  let httpClient: HttpClient;
-  let httpTestingController: HttpTestingController;
   const jwtUtils = new JwtUtils();
 
   jwtUtils.validate = () => {
   };
 
+  const mockAuthService = {
+    authorizeThenRedirect() {},
+    hasAnyRoles(): boolean {
+      return true;
+    },
+  };
+
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HttpClientModule, HttpClientTestingModule],
       providers: [
         {provide: SESAME_CONFIG, useValue: {apiEndpoint: 'http://sesame/api'}},
+        {provide: SesameHttpService, useValue: sesameHttpMock},
         {provide: JwtUtils, useValue: jwtUtils},
+        {provide: AuthService, useValue: mockAuthService},
         SesameService
       ]
     });
-    httpClient = TestBed.get(HttpClient);
-    httpTestingController = TestBed.get(HttpTestingController);
+    clearMocks();
+    sesameHttpMock.getPem.and.returnValue(of('pem'));
   });
 
-  afterEach(() => {
-    httpTestingController.verify();
-  });
+  describe('when already logged with cookie', () => {
 
-  it('should retrieve UserInfo',
-    inject([SesameService], (sesame: SesameService) => {
-      sesame.userInfo().subscribe((userInfo) =>
-        expect(userInfo.username).toEqual('toto')
+    beforeEach(() => {
+      document.cookie = cookie;
+      sesameHttpMock.check.and.returnValue(of(jwtToken));
+      sesame = TestBed.inject(SesameService);
+    });
+
+    it('should retrieve UserInfo', () => {
+      sesame.userInfo().subscribe((userInfo) => {
+          expect(userInfo.username).toEqual('toto');
+        }
       );
-      flushTestData();
-    })
-  );
+    });
 
-  it('should has role ROLE1',
-    inject([SesameService], (sesame: SesameService) => {
+    it('should logout', () => {
+      sesameHttpMock.logout.and.returnValue(of(null));
+      sesame.logout();
+      sesame.userInfo().subscribe((userInfo) => {
+          expect(userInfo).toBe(undefined);
+        }
+      );
+    });
+
+    it('should has role ROLE1', () => {
       sesame.hasRole('ROLE1').subscribe((hasRole) =>
         expect(hasRole).toBeTruthy()
       );
-      flushTestData();
-    })
-  );
+    });
 
-  it('should has one role NOT_AVAILABLE,ROLE1',
-    inject([SesameService], (sesame: SesameService) => {
+    it('should has one role NOT_AVAILABLE,ROLE1', () => {
       sesame.hasAnyRoles(['NOT_AVAILABLE', 'ROLE1']).subscribe((hasRole) =>
         expect(hasRole).toBeTruthy()
       );
-      flushTestData();
-    })
-  );
+    });
 
-  it('should call server for login',
-    inject([SesameService], (sesame: SesameService) => {
+    it('should check server and retrieve logged user with cookie', () => {
+      expect(sesameHttpMock.getPem).toHaveBeenCalledTimes(1);
+      expect(sesameHttpMock.getJwtToken).toHaveBeenCalledTimes(0);
+      expect(sesameHttpMock.check).toHaveBeenCalledTimes(1);
+    });
+
+  });
+
+  describe('when not logged', () => {
+    beforeEach(() => {
+      document.cookie = JWT_COOKIE + '=;expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      sesame = TestBed.inject(SesameService);
+    });
+
+    it('should not check server when cookie is not present', () => {
+      expect(sesameHttpMock.getPem).toHaveBeenCalledTimes(1);
+      expect(sesameHttpMock.getJwtToken).toHaveBeenCalledTimes(0);
+      expect(sesameHttpMock.check).toHaveBeenCalledTimes(0);
+    });
+
+    it('should call server for login', () => {
+
+      sesameHttpMock.getJwtToken.and.returnValue(of(jwtToken));
+
       sesame.login('toto', 'password');
 
-      const keysReqs = httpTestingController.match('http://sesame/api/keys/public');
-      const checkReq = httpTestingController.expectOne('http://sesame/api/user/jwt/check');
-
-      keysReqs[0].flush('FAKE_KEY');
-      keysReqs[1].flush('FAKE_KEY');
-      checkReq.flush(jwtToken);
-
-      const req = httpTestingController.expectOne('http://sesame/api/user/jwt');
-      expect(req.request.method).toEqual('GET');
-      expect(req.request.withCredentials).toBeTruthy();
-      expect(req.request.headers.get('Authorization')).toBe('Basic ' + btoa('toto:password'));
-    })
-  );
-
-  function flushTestData() {
-    const keysReq = httpTestingController.expectOne('http://sesame/api/keys/public');
-    const checkReq = httpTestingController.expectOne('http://sesame/api/user/jwt/check');
-
-    keysReq.flush('FAKE_KEY');
-    checkReq.flush(jwtToken);
-  }
+      expect(sesameHttpMock.getPem).toHaveBeenCalledTimes(1);
+      expect(sesameHttpMock.getJwtToken).toHaveBeenCalledTimes(1);
+      expect(sesameHttpMock.check).toHaveBeenCalledTimes(0);
+    });
+  });
 
 });
