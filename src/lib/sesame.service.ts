@@ -142,6 +142,12 @@ export class SesameService {
     return this.authService.checkAuthorized(this.userInfo());
   }
 
+  isAuthorized(): Observable<boolean> {
+    return this.checkAuthorized().pipe(
+      map(authorized => authorized === true)
+    );
+  }
+
   private getCookie(name: string): string {
     const ca: Array<string> = document.cookie.split(';');
     const caLen: number = ca.length;
