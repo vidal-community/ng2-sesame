@@ -55,3 +55,8 @@ or
 
 It will increase version with chosen strategy, then build and package your 
 local workspace, and finally publish it on `npm`.
+
+## Authentification
+
+If npm asks you to log in, you need to provide your npmjs.com credentials.
+You need to be added to vidalsoftware npm organization to be able to publish (ask for it in slack).

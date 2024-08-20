@@ -6,8 +6,10 @@ import {of} from 'rxjs';
 
 const francais = {code: 'fra', label: 'Francais'} as Language;
 let sesame: SesameService;
+import {AuthService} from './auth/auth.service';
 
-const userInfoStub = {
+export const userInfoStub = {
+  jwt: 'cyH1EfP_VfNaQfNoBZ8W2Q',
   username: 'toto',
   mail: 'toto@vidal.fr',
   language: francais,
@@ -45,12 +47,20 @@ describe('SesameService', () => {
   jwtUtils.validate = () => {
   };
 
+  const mockAuthService = {
+    authorizeThenRedirect: jasmine.createSpy("authorizeThenRedirect"),
+    hasAnyRoles: jasmine.createSpy("hasAnyRoles")
+  };
+  mockAuthService.authorizeThenRedirect.and.returnValue({});
+  mockAuthService.hasAnyRoles.and.returnValue(true);
+
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
         {provide: SESAME_CONFIG, useValue: {apiEndpoint: 'http://sesame/api'}},
         {provide: SesameHttpService, useValue: sesameHttpMock},
         {provide: JwtUtils, useValue: jwtUtils},
+        {provide: AuthService, useValue: mockAuthService},
         SesameService
       ]
     });
