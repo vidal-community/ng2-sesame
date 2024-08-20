@@ -4,6 +4,7 @@ import * as jsrsasign from 'jsrsasign';
 import {map, mergeMap, switchMap} from 'rxjs/operators';
 import {Language} from './language.model';
 import {SesameHttpService} from './sesame-http.service';
+import {AuthService} from './auth/auth.service';
 
 export const SESAME_CONFIG = new InjectionToken('sesame.config');
 
@@ -50,14 +51,14 @@ export class SesameService {
 
   constructor(private sesameHttp: SesameHttpService,
               private jwtUtils: JwtUtils,
-              @Inject(SESAME_CONFIG) private sesameConfig: SesameConfig) {
+              private authService: AuthService) {
     this.pemObservable = sesameHttp.getPem();
     this.check();
   }
 
   public hasAnyRoles(roles: Array<string>): Observable<boolean> {
     return this.userInfo().pipe(map(userInfo => {
-        return roles.some((role) => userInfo && userInfo.roles && (userInfo.roles.indexOf(role) !== -1));
+        return this.authService.hasAnyRoles(userInfo, roles);
       }
     ));
   };
@@ -72,11 +73,14 @@ export class SesameService {
     const jwtObservable = this.sesameHttp.getJwtToken(username, password);
 
     zip(jwtObservable, this.pemObservable)
-      .pipe(
-        map(([jwt, pem]) => this.checkJwt(jwt, pem)),
-        switchMap(userInfo => this.populateLanguage(userInfo)),
-      )
-      .subscribe(userInfo => this.doOnUserInfo(userInfo));
+    .pipe(
+      map(([jwt, pem]) => this.checkJwt(jwt, pem)),
+      switchMap(userInfo => this.populateLanguage(userInfo)),
+    )
+    .subscribe(userInfo => {
+      this.doOnUserInfo(userInfo);
+      this.authService.authorizeThenRedirect(userInfo);
+    });
   }
 
   private populateLanguage(userInfo: UserInfo): Observable<UserInfo> {
@@ -92,6 +96,7 @@ export class SesameService {
     this.sesameHttp.logout().subscribe(() => {
       this.deleteCookie(JWT_COOKIE);
       this.doOnUserInfo(undefined);
+      this.authService.authorizeThenRedirect(undefined);
     });
   }
 
@@ -130,6 +135,10 @@ export class SesameService {
 
   private doOnUserInfo(userInfo: UserInfo) {
     this.userInfoObservable.next(userInfo);
+  }
+
+  checkAuthorized() {
+    return this.authService.checkAuthorized(this.userInfo());
   }
 
   private getCookie(name: string): string {
